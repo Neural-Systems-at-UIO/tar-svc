@@ -1,0 +1,57 @@
+<!-- vertically stacked div -->
+<div id="container" style="display: flex; flex-direction: column;">
+    <!-- create input for tarUrl -->
+    <label for="tarUrl">Enter URL to tar file:</label>
+    <input type="text" id="tarUrl"
+        value="https://data-proxy.ebrains.eu/api/v1/public/buckets/deepslice/output_image_files.tar">
+    <!-- create input for indexfile url on a new line-->
+
+    <label for="indexUrl">Enter URL to index file:</label>
+    <input type="text" id="indexUrl"
+        value="https://data-proxy.ebrains.eu/api/v1/public/buckets/deepslice/indexfile.index">
+
+    <!-- create input for chunk filename -->
+    <label for="fileName">Enter chunk filename:</label>
+    <input type="text" id="fileName" value="output_image_files/13/4_3.jpg">
+    <!-- create button to call API constructor-->
+    <button id="btn" onclick="constructAPICall()">Create API URL</button>
+
+
+    <!-- create div to display API URL -->
+    <input type="text" id="apiCall">
+    <!-- create button to call API -->
+    <button id="btn" onclick="imageFromAPI()">Create URL & Call API</button>
+    <!-- create empty image to be filled by javascript -->
+    <img id="img" src="" alt="image from API" width="500">
+
+
+</div>
+</div>
+
+<script>
+    function constructAPICall() {
+        // get the values from the input fields
+        var tarUrl = document.getElementById("tarUrl").value;
+        var indexUrl = document.getElementById("indexUrl").value;
+        var fileName = document.getElementById("fileName").value;
+        // construct the API call
+        // make call to localhost
+
+        var apiCall = "http://localhost:3001/dzi?tarUrl=" + tarUrl + "&indexUrl=" + indexUrl + "&fileName=" + fileName;
+        // display the API call
+        document.getElementById("apiCall").value = apiCall;
+    }
+    function imageFromAPI() {
+        // update the parameters
+        constructAPICall();
+        // get the API call
+        var apiCall = document.getElementById("apiCall").value;
+        // get the image element
+        var img = document.getElementById("img");
+        // set the image source to the API call
+        img.src = apiCall;
+
+
+    }
+
+</script>
