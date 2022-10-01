@@ -12,7 +12,8 @@ app.use(cors({ origin: '*' }));
 const DZItoTar = require('./slicing-web-tar.js').DZItoTar;
 // create async endpoint to get DZI chunk
 // accept all cors requests
-
+var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
+    ip = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
 
 // create a 
 // app.get('/', (req, res) => {
@@ -22,9 +23,7 @@ const DZItoTar = require('./slicing-web-tar.js').DZItoTar;
 
 // });
 // start app
-app.listen(() => {
-}
-);
+app.listen(port, ip);
 // serve index.html
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
