@@ -7,7 +7,8 @@ const app = require('express')();
 const cors = require('cors');
 // use cors which allows all origins
 app.use(cors({ origin: '*' }));
-
+// import node fetch without esm
+const fetch = require('node-fetch');
 // import DZItoTar function
 const DZItoTar = require('./slicing-web-tar.js').DZItoTar;
 // create async endpoint to get DZI chunk
