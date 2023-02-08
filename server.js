@@ -1,6 +1,5 @@
 const http = require('http');
 const fs = require('fs');
-
 const app = require('express')();
 // require cors
 const cors = require('cors');
@@ -10,8 +9,19 @@ app.use(cors({ origin: '*' }));
 const fetch = require('node-fetch');
 // import DZItoTar function
 const DZItoTar = require('./slicing-web-tar.js').DZItoTar;
+// import netunzip
+const netunzip = require('./readZipHeader.js').netunzip;
 // create async endpoint to get DZI chunk
 // accept all cors requests
+
+
+var cachedIndexes = new Map();
+
+
+
+
+
+
 var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
     ip = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
 // port = 8080;
@@ -39,8 +49,8 @@ app.get('/demo', (req, res) => {
     res.end(file, 'binary');
 });
 
-function ReturnIndexAndSize(fileName, tarIndex) {
-    file = tarIndex.map((line) => {
+function ReturnIndexAndSize(fileName, index) {
+    file = index.map((line) => {
         if (line.startsWith(fileName)) {
             // return line and previous line
             return line;
@@ -59,6 +69,97 @@ function ReturnIndexAndSize(fileName, tarIndex) {
     fileSize = file[2];
     return [fileIndex, fileSize];
 }
+function clearCacheAfterStaleTime() {
+    // get current time
+    var currentTime = new Date().getTime();
+    // loop through cachedIndexes
+    cachedIndexes.forEach((value, key) => {
+        // if the time since the last request is greater than 10 minutes
+        if (currentTime - value.lastRequest > 600000) {
+            // remove from cache
+            cachedIndexes.delete(key);
+        }
+    });
+}
+
+function retrieveIndex(url) {
+    return new Promise((resolve, reject) => {
+        if (cachedIndexes.has(url)) {
+            // get index from cache and update lastRequest time
+            zipIndex = cachedIndexes.get(url);
+            zipIndex.lastRequest = new Date().getTime();    
+            resolve(zipIndex) 
+        }  
+        else {
+            netunzip(url).then((zipIndex) => {
+                // add lastRequest time
+                zipIndex.lastRequest = new Date().getTime();
+                // add zipIndex to cache
+                cachedIndexes.set(url, zipIndex);
+                resolve(zipIndex)
+            })
+            .catch((error) => {
+                reject(error)
+                });
+        }
+});
+}
+app.get('/dzip/', (req, res) => {
+    // get filename, dzipUrl from url
+    const dzipUrl = req.query.dzipUrl;
+    const fileName = req.query.fileName;
+    // check if dzipUrl is in cache
+    retrieveIndex(dzipUrl).then((zipIndex) => {
+    file = zipIndex.entries.get(fileName)
+    zipIndex.get(file).then((file) => {
+        console.log(file)
+        // if filename ends with .dzi then we should return the dzi file
+        if (fileName.endsWith('.dzi')) {
+            // var dziFile = file.toString('utf8');
+            // send file in a format that can be viewed by the browser
+            res.writeHead(200, { 'Content-Type': 'text/xml' });
+            res.end(file, 'binary');
+        }
+        // if filename ends with .jpg then we should return the jpg file
+        else if (fileName.endsWith('.jpg')) {
+            // send file in a format that can be viewed by the browser
+            res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+            res.end(file, 'binary');
+        }
+        // if filename ends with .png then we should return the png file
+        else if (fileName.endsWith('.png')) {
+            res.writeHead(200, { 'Content-Type': 'image/png' });
+            res.end(file, 'binary');
+        }
+    })
+
+    // let fileIndex = file.offset;
+    // let fileSize = file.compsize;
+    
+    // .then(response => {
+    //     // fs write file
+    //     // get reponse as binary
+    //     response.arrayBuffer().then(ArrayBuff => {
+    //         // convert to buffer
+    //         const buffer = Buffer.from(ArrayBuff);
+    //         // convert bufer to binary
+    //         const file = buffer.toString('binary');
+
+    //         // console log the file size in mb exactly
+    //         console.log('file size in mb', file.length / 1000000);
+    //         // convert to png
+    //         res.writeHead(200, { 'Content-Type': 'image/png' });
+    //         res.end(file, 'binary');
+
+    //     });
+    // });
+    // // zipIndex is a map of filenames, find the filename in the map
+
+
+
+});   
+});    
+    
 // get url of tar file
 app.get('/dzi/', (req, res) => {
     // get filename, tarUrl and indexUrl from url
