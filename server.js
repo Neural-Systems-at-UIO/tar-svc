@@ -69,34 +69,30 @@ function ReturnIndexAndSize(fileName, index) {
     fileSize = file[2];
     return [fileIndex, fileSize];
 }
-function clearCacheAfterStaleTime() {
-    // get current time
-    var currentTime = new Date().getTime();
-    // loop through cachedIndexes
-    cachedIndexes.forEach((value, key) => {
-        // if the time since the last request is greater than 10 minutes
-        if (currentTime - value.lastRequest > 600000) {
-            // remove from cache
-            cachedIndexes.delete(key);
-        }
-    });
+// function that will clear the cache of a specific url from the time it was called, can be reset by calling the function again
+async function clearCache(url) {
+    // delete the url from the cache after 30 minutes
+    setTimeout(() => {
+        cachedIndexes.delete(url);
+    }, 1800000);
 }
+
+ 
+
+
 
 function retrieveIndex(url) {
     return new Promise((resolve, reject) => {
         if (cachedIndexes.has(url)) {
-            // get index from cache and update lastRequest time
             zipIndex = cachedIndexes.get(url);
-            zipIndex.lastRequest = new Date().getTime();    
             resolve(zipIndex) 
         }  
         else {
             netunzip(url).then((zipIndex) => {
-                // add lastRequest time
-                zipIndex.lastRequest = new Date().getTime();
                 // add zipIndex to cache
                 cachedIndexes.set(url, zipIndex);
                 resolve(zipIndex)
+                clearCache(url);
             })
             .catch((error) => {
                 reject(error)
@@ -112,7 +108,6 @@ app.get('/dzip/', (req, res) => {
     retrieveIndex(dzipUrl).then((zipIndex) => {
     file = zipIndex.entries.get(fileName)
     zipIndex.get(file).then((file) => {
-        console.log(file)
         // if filename ends with .dzi then we should return the dzi file
         if (fileName.endsWith('.dzi')) {
             // var dziFile = file.toString('utf8');
