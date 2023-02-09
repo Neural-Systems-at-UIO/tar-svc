@@ -411,8 +411,7 @@ function fakeBucket(url, res, req) {
 
         // remove ?prefix= from the middle of the url
         url = url.replace('?prefix=', '/');
-        console.log('url   ' + url);
-        console.log('fileName   ' + fileName);
+
         // make a call to the dzip method
         dzip(url, fileName, res);
     }
