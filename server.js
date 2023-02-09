@@ -336,8 +336,13 @@ function jsonToXml(json) {
 
 function fakeBucket(url, res) {
     // if url ends with ?delimiter=/ then strip it
+    
     if (url.endsWith('?delimiter=/')) {
         url = url.replace('?delimiter=/', '');
+    // if url doesn't end with / then add it
+    if (!url.endsWith('/')) {
+        url = url + '/';
+    }
     
     url = url + '&delimiter=/'
     console.log('url   ' + url)
