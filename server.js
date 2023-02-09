@@ -1,13 +1,12 @@
 const http = require('http');
 const fs = require('fs');
-const app = require('express')();
+var express = require("express");
 // require cors
 const cors = require('cors');
 // use cors which allows all origins
 app.use(cors({ origin: '*' }));
 // import node fetch without esm
 const fetch = require('node-fetch');
-const { json } = require('express');
 // import DZItoTar function
 const DZItoTar = require('./slicing-web-tar.js').DZItoTar;
 // import netunzip
