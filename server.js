@@ -13,7 +13,7 @@ const DZItoTar = require('./slicing-web-tar.js').DZItoTar;
 const netunzip = require('./readZipHeader.js').netunzip;
 // create async endpoint to get DZI chunk
 // accept all cors requests
-
+// convert the above line to non esm
 
 var cachedIndexes = new Map();
 var app = express();
@@ -107,43 +107,50 @@ app.get('/dzip/', (req, res) => {
     // get filename, dzipUrl from url
     const dzipUrl = req.query.dzipUrl;
     const fileName = req.query.fileName;
+    dzip(dzipUrl, fileName, res)
     // check if dzipUrl is in cache
     // console.log('dzipUrl', dzipUrl)
-    retrieveIndex(dzipUrl).then((zipIndex) => {
-    file = zipIndex.entries.get(fileName)
-    zipIndex.get(file).then((file) => {
-        // console.log(file)
-        // if filename ends with .dzi then we should return the dzi file
-        if (fileName.endsWith('.dzi')) {
-            // var dziFile = file.toString('utf8');
-            // send file in a format that can be viewed by the browser
-            res.writeHead(200, { 'Content-Type': 'text/xml' });
-            let buffer = Buffer.from(file);
 
-            res.write(buffer);
-            res.send();
-        }
-        // if filename ends with .jpg then we should return the jpg file
-        else if (fileName.endsWith('.jpg')) {
-            // console.log('jpg')
-            // send file in a format that can be viewed by the browser
-            // res.writeHead(200, { 'Content-Type': 'image/jpeg' });
-            res.set('Content-Type', 'image/jpeg');
-            // convert file to buffer
-            let buffer = Buffer.from(file);
-            res.write(buffer);
-            res.send();
-        }
-        // if filename ends with .png then we should return the png file
-        else if (fileName.endsWith('.png')) {
-            res.set('Content-Type', 'image/png');
-            // convert file to buffer
-            let buffer = Buffer.from(file);
-            res.write(buffer);
-            res.send();
-            // res.end(file, 'binary');
-        }
-    })
+});
+function dzip(dzipUrl, fileName, res) {
+    retrieveIndex(dzipUrl).then((zipIndex) => {
+        file = zipIndex.entries.get(fileName)
+        zipIndex.get(file).then((file) => {
+            // console.log(file)
+            // if filename ends with .dzi then we should return the dzi file
+            if (fileName.endsWith('.dzi')) {
+                // var dziFile = file.toString('utf8');
+                // send file in a format that can be viewed by the browser
+                res.writeHead(200, { 'Content-Type': 'text/xml' });
+                let buffer = Buffer.from(file);
+    
+                res.write(buffer);
+                res.send();
+            }
+            // if filename ends with .jpg then we should return the jpg file
+            else if (fileName.endsWith('.jpg')) {
+                // console.log('jpg')
+                // send file in a format that can be viewed by the browser
+                // res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+                res.set('Content-Type', 'image/jpeg');
+                // convert file to buffer
+                let buffer = Buffer.from(file);
+                res.write(buffer);
+                res.send();
+            }
+            // if filename ends with .png then we should return the png file
+            else if (fileName.endsWith('.png')) {
+                res.set('Content-Type', 'image/png');
+                // convert file to buffer
+                let buffer = Buffer.from(file);
+                res.write(buffer);
+                res.send();
+                // res.end(file, 'binary');
+            }
+        });
+    });
+}
+            
 
     // let fileIndex = file.offset;
     // let fileSize = file.compsize;
@@ -168,9 +175,6 @@ app.get('/dzip/', (req, res) => {
     // // zipIndex is a map of filenames, find the filename in the map
 
 
-
-});   
-});    
 
 
 // get url of tar file
@@ -245,19 +249,144 @@ app.get('/dzi/', (req, res) => {
 app.get('/fakebucket/', (req, res) => {
     console.log('fakebucket')
     const url = req.query.url;
-    fakeBucket(url);
-    res.send('done');
+    fakeBucket(url, res);
 });
-function fakeBucket(url) {
+
+// write a function to convert a json string into an xml
+// function jsonToXml(json) {
+//     var xml = '';
+//     for (var prop in json) {
+//         xml += json[prop] instanceof Array ? '' : "<" + prop + ">";
+//         if (json[prop] instanceof Array) {
+//             for (var array in json[prop]) {
+//                 xml += "<" + prop + ">";
+//                 xml += jsonToXml(new Object(json[prop][array]));
+//                 xml += "</" + prop + ">";
+//             }
+//         } else if (typeof json[prop] == "object") {
+//             xml += jsonToXml(new Object(json[prop]));
+//         } else {
+//             xml += json[prop];
+//         }
+//         xml += json[prop] instanceof Array ? '' : "</" + prop + ">";
+//     }
+//     var xml = xml.replace(/<\/?[0-9]{1,}>/g, '');
+//     // add container root element
+//     return xml;
+// }
+// rewrite the above function so that it adds the attribute name to every element
+// function jsonToXml(json) {
+//     var xml = '';
+//     for (var prop in json) {
+//         xml += json[prop] instanceof Array ? '' : "<" + prop + " name='" + json[prop].name + "'>";
+//         if (json[prop] instanceof Array) {
+//             for (var array in json[prop]) {
+//                 xml += "<" + prop + ">";
+//                 xml += jsonToXml(new Object(json[prop][array]));
+//                 xml += "</" + prop + ">";
+//             }
+//         } else if (typeof json[prop] == "object") {
+//             xml += jsonToXml(new Object(json[prop]));
+//         } else {
+//             xml += json[prop];
+//         }
+//         xml += json[prop] instanceof Array ? '' : "</" + prop + ">";
+//     }
+//     var xml = xml.replace(/<\/?[0-9]{1,}>/g, '');
+//     // add container root element
+//     return xml;
+// }
+
+// fix the function above so that the web browser no longer returns this error
+// XML Parsing Error: not well-formed
+// <?xml version="1.0" encoding="UTF-8"?>        <container><0
+// ----------------------------------------------------------^
+function jsonToXml(json) {
+    let xml = '';
+    for (let prop in json) {
+        let tagName = typeof prop === "string" && /^[a-z]+$/i.test(prop) ? prop : `subdir`;
+        if (typeof json[prop] == "object") {
+        var value = (json[prop]);
+        value = value.name;
+        xml += json[prop] instanceof Array ? '' : `<${tagName} name="${value}">`;
+
+        }
+        else {
+        xml += json[prop] instanceof Array ? '' : `<${tagName}>`;
+
+        }
+        
+        if (json[prop] instanceof Array) {
+            for (let i in json[prop]) {
+                let tagName = `item`;
+                xml += `<${tagName} attributeName=${json[prop][i]}'>`;
+                xml += jsonToXml(new Object(json[prop][i]));
+                xml += `</${tagName}>`;
+            }
+        } else if (typeof json[prop] == "object") {
+            xml += jsonToXml(new Object(json[prop]));
+        } else {
+            xml += json[prop];
+        }
+        xml += json[prop] instanceof Array ? '' : `</${tagName}>`;
+    }
+    return xml;
+}
+
+
+function fakeBucket(url, res) {
+    // if url ends with ?delimiter=/ then strip it
+    if (url.endsWith('?delimiter=/')) {
+        url = url.replace('?delimiter=/', '');
+    
     url = url + '&delimiter=/'
+    console.log('url   ' + url)
     return fetch(url).then(response => response.text())
     .then(response => {
-        // convert to object
-        let data  =  JSON.parse(response)
-        
+        response = response;
+        //  to object
+        // convert to array buffer
+        // response to string
+        response = JSON.parse(response).objects;
+        // get only the name of the files into an object with key 'name'
+        response = response.map((item) => {
+            // remove the path from the name
+            item.name = item.name.split('/').pop();
+            return { 'name': item.name }
+        });
+        // console.log(response)
+        response = `<?xml version="1.0" encoding="UTF-8"?>        <container>${jsonToXml(response)} </container>`
+        const buffer = Buffer.from(response);
+        res.writeHead(200, { 'Content-Type': 'text/xml' });
+        res.write(buffer);
+        res.send();
 
     })
-    
-    
-    .then(response => {console.log(response)})
+    }
+    else {
+        // if url ends with dzi then we need to make a call to our dzip method
+        if (url.endsWith('dzi')) {
+            // get the file name from the url
+            var fileName = url.split('/').pop();
+            // replace the dzi with dzip after the final . in the url
+            url = url.replace('.dzi', '.dzip');
+
+            
+            
+        }
+        // if url ends with png, jpg, jpeg, or tif then we need to first restrucure the url
+        if (url.endsWith('png') || url.endsWith('jpg') || url.endsWith('jpeg') || url.endsWith('tif')) {
+            // url has format www.eg.eu/arbitrary/path/filename_files/0/0_0.png and we need to get filename.dzip
+            let parts = url.split("_files");
+            url = parts[0] + ".dzip";
+            fileName = parts[0].split('/').pop();
+            fileName = `${fileName}_files${parts[1]}`
+        }
+            
+        // remove ?prefix= from the middle of the url
+        url = url.replace('?prefix=', '/');
+        // make a call to the dzip method
+        dzip(url, fileName, res);
+    }
+
 }
