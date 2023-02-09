@@ -249,7 +249,7 @@ app.get('/dzi/', (req, res) => {
 app.get('/fakebucket/', (req, res) => {
     console.log('fakebucket')
     const url = req.query.url;
-    fakeBucket(url, res);
+    fakeBucket(url, res, req);
 });
 
 // write a function to convert a json string into an xml
