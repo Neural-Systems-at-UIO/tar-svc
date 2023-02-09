@@ -6,6 +6,7 @@ const cors = require('cors');
 // use cors which allows all origins
 // import node fetch without esm
 const fetch = require('node-fetch');
+const { response } = require('express');
 // import DZItoTar function
 const DZItoTar = require('./slicing-web-tar.js').DZItoTar;
 // import netunzip
@@ -117,7 +118,9 @@ app.get('/dzip/', (req, res) => {
             // var dziFile = file.toString('utf8');
             // send file in a format that can be viewed by the browser
             res.writeHead(200, { 'Content-Type': 'text/xml' });
-            res.write(file.toString('utf8'));
+            let buffer = Buffer.from(file);
+
+            res.write(buffer);
             res.send();
         }
         // if filename ends with .jpg then we should return the jpg file
@@ -168,7 +171,8 @@ app.get('/dzip/', (req, res) => {
 
 });   
 });    
-    
+
+
 // get url of tar file
 app.get('/dzi/', (req, res) => {
     // get filename, tarUrl and indexUrl from url
@@ -237,3 +241,23 @@ app.get('/dzi/', (req, res) => {
         });
     };
 });
+
+app.get('/fakebucket/', (req, res) => {
+    console.log('fakebucket')
+    const url = req.query.url;
+    fakeBucket(url);
+    res.send('done');
+});
+function fakeBucket(url) {
+    url = url + '&delimiter=/'
+    return fetch(url).then(response => response.text())
+    .then(response => {
+        // convert to object
+        let data  =  JSON.parse(response)
+        
+
+    })
+    
+    
+    .then(response => {console.log(response)})
+}
