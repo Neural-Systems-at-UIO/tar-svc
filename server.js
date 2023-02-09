@@ -7,6 +7,7 @@ const cors = require('cors');
 app.use(cors({ origin: '*' }));
 // import node fetch without esm
 const fetch = require('node-fetch');
+const { json } = require('express');
 // import DZItoTar function
 const DZItoTar = require('./slicing-web-tar.js').DZItoTar;
 // import netunzip
@@ -84,11 +85,13 @@ async function clearCache(url) {
 function retrieveIndex(url) {
     return new Promise((resolve, reject) => {
         if (cachedIndexes.has(url)) {
+            // console.log('cache hit')
             zipIndex = cachedIndexes.get(url);
             resolve(zipIndex) 
         }  
         else {
             netunzip(url).then((zipIndex) => {
+                // console.log('cache miss')
                 // add zipIndex to cache
                 cachedIndexes.set(url, zipIndex);
                 resolve(zipIndex)
@@ -105,26 +108,38 @@ app.get('/dzip/', (req, res) => {
     const dzipUrl = req.query.dzipUrl;
     const fileName = req.query.fileName;
     // check if dzipUrl is in cache
+    // console.log('dzipUrl', dzipUrl)
     retrieveIndex(dzipUrl).then((zipIndex) => {
     file = zipIndex.entries.get(fileName)
     zipIndex.get(file).then((file) => {
+        // console.log(file)
         // if filename ends with .dzi then we should return the dzi file
         if (fileName.endsWith('.dzi')) {
             // var dziFile = file.toString('utf8');
             // send file in a format that can be viewed by the browser
             res.writeHead(200, { 'Content-Type': 'text/xml' });
-            res.end(file, 'binary');
+            res.write(file.toString('utf8'));
+            res.send();
         }
         // if filename ends with .jpg then we should return the jpg file
         else if (fileName.endsWith('.jpg')) {
+            // console.log('jpg')
             // send file in a format that can be viewed by the browser
-            res.writeHead(200, { 'Content-Type': 'image/jpeg' });
-            res.end(file, 'binary');
+            // res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+            res.set('Content-Type', 'image/jpeg');
+            // convert file to buffer
+            let buffer = Buffer.from(file);
+            res.write(buffer);
+            res.send();
         }
         // if filename ends with .png then we should return the png file
         else if (fileName.endsWith('.png')) {
-            res.writeHead(200, { 'Content-Type': 'image/png' });
-            res.end(file, 'binary');
+            res.set('Content-Type', 'image/png');
+            // convert file to buffer
+            let buffer = Buffer.from(file);
+            res.write(buffer);
+            res.send();
+            // res.end(file, 'binary');
         }
     })
 
