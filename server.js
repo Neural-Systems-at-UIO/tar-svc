@@ -385,26 +385,34 @@ function fakeBucket(url, res, req) {
     }
     else {
         // if url ends with dzi then we need to make a call to our dzip method
-        if (url.endsWith('dzi')) {
-            // get the file name from the url
-            var fileName = url.split('/').pop();
-            // replace the dzi with dzip after the final . in the url
-            url = url.replace('.dzi', '.dzip');
+        // if (url.endsWith('dzi')) {
+        //     // get the file name from the url
+        //     var fileName = url.split('/').pop();
+        //     // replace the dzi with dzip after the final . in the url
+        //     url = url.replace('.dzi', '.dzip');
 
             
             
-        }
-        // if url ends with png, jpg, jpeg, or tif then we need to first restrucure the url
-        if (url.endsWith('png') || url.endsWith('jpg') || url.endsWith('jpeg') || url.endsWith('tif')) {
-            // url has format www.eg.eu/arbitrary/path/filename_files/0/0_0.png and we need to get filename.dzip
-            let parts = url.split("_files");
-            url = parts[0] + ".dzip";
-            fileName = parts[0].split('/').pop();
-            fileName = `${fileName}_files${parts[1]}`
-        }
-            
+        // }
+        // // if url ends with png, jpg, jpeg, or tif then we need to first restrucure the url
+        // if (url.endsWith('png') || url.endsWith('jpg') || url.endsWith('jpeg') || url.endsWith('tif')) {
+        //     // url has format www.eg.eu/arbitrary/path/filename_files/0/0_0.png and we need to get filename.dzip
+        //     let parts = url.split("_files");
+        //     url = parts[0] + ".dzip";
+        //     fileName = parts[0].split('/').pop();
+        //     fileName = `${fileName}_files${parts[1]}`
+        // }
+        url_parts = url.split(".dzip");
+        url = url_parts[0] + ".dzip";
+        fileName = url_parts[1];
+        // remove the first character from the filename
+        fileName = fileName.substring(1);
+
+
         // remove ?prefix= from the middle of the url
         url = url.replace('?prefix=', '/');
+        console.log('url   ' + url);
+        console.log('fileName   ' + fileName);
         // make a call to the dzip method
         dzip(url, fileName, res);
     }
