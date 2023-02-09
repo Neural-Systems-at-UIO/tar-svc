@@ -4,7 +4,6 @@ var express = require("express");
 // require cors
 const cors = require('cors');
 // use cors which allows all origins
-app.use(cors({ origin: '*' }));
 // import node fetch without esm
 const fetch = require('node-fetch');
 // import DZItoTar function
@@ -16,7 +15,8 @@ const netunzip = require('./readZipHeader.js').netunzip;
 
 
 var cachedIndexes = new Map();
-
+var app = express();
+app.use(cors({ origin: '*' }));
 
 
 
