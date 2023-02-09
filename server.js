@@ -334,7 +334,7 @@ function jsonToXml(json) {
 }
 
 
-function fakeBucket(url, res) {
+function fakeBucket(url, res, req) {
     // if url ends with ?delimiter=/ then strip it
     
     if (url.endsWith('?delimiter=/')) {
@@ -353,18 +353,33 @@ function fakeBucket(url, res) {
         // convert to array buffer
         // response to string
         response = JSON.parse(response).objects;
-        // get only the name of the files into an object with key 'name'
-        response = response.map((item) => {
-            // remove the path from the name
-            item.name = item.name.split('/').pop();
-            return { 'name': item.name }
-        });
-        // console.log(response)
-        response = `<?xml version="1.0" encoding="UTF-8"?>        <container>${jsonToXml(response)} </container>`
-        const buffer = Buffer.from(response);
-        res.writeHead(200, { 'Content-Type': 'text/xml' });
-        res.write(buffer);
-        res.send();
+        // check if header request is xml
+        if (req.headers.accept == 'text/xml') {
+
+            // get only the name of the files into an object with key 'name'
+            response = response.map((item) => {
+                // remove the path from the name
+                item.name = item.name.split('/').pop();
+                return { 'name': item.name }
+            });
+            // console.log(response)
+            response = `<?xml version="1.0" encoding="UTF-8"?>        <container>${jsonToXml(response)} </container>`
+            const buffer = Buffer.from(response);
+            res.writeHead(200, { 'Content-Type': 'text/xml' });
+            res.write(buffer);
+            res.send();
+        }
+        else {
+            //map the response to be a list of objects with the key subdir and the value being the name of the file
+            response = response.map((item) => {
+                // remove the path from the name
+                item.name = item.name.split('/').pop();
+                return { 'subdir': item.name }
+            }
+            );
+            // return the response as a json object
+            res.json(response);
+        }
 
     })
     }
