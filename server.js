@@ -360,7 +360,7 @@ function fakeBucket(url, res, req) {
             response = response.map((item) => {
                 // remove the path from the name
                 item.name = item.name.split('/').pop();
-                return { 'name': item.name }
+                return { 'name': item.name  + '/'}
             });
             // console.log(response)
             response = `<?xml version="1.0" encoding="UTF-8"?>        <container>${jsonToXml(response)} </container>`
@@ -374,7 +374,7 @@ function fakeBucket(url, res, req) {
             response = response.map((item) => {
                 // remove the path from the name
                 item.name = item.name.split('/').pop();
-                return { 'subdir': item.name }
+                return { 'subdir': item.name  + '/'}
             }
             );
             // return the response as a json object
