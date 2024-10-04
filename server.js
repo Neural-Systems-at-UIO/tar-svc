@@ -10,7 +10,8 @@ const { response } = require('express');
 // import DZItoTar function
 const DZItoTar = require('./slicing-web-tar.js').DZItoTar;
 // import netunzip
-const netunzip = require('./readZipHeader.js').netunzip;
+//const netunzip = require('./readZipHeader.js').netunzip;
+const netunzip = require('./netunzip.js').netunzip;
 // create async endpoint to get DZI chunk
 // accept all cors requests
 // convert the above line to non esm
