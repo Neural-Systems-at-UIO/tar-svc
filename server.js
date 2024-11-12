@@ -129,7 +129,7 @@ function dzip(dzipUrl, fileName, res) {
                 res.send();
             }
             // if filename ends with .jpg then we should return the jpg file
-            else if (fileName.endsWith('.jpg')) {
+            else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
                 // console.log('jpg')
                 // send file in a format that can be viewed by the browser
                 // res.writeHead(200, { 'Content-Type': 'image/jpeg' });
